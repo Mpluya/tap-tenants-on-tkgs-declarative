@@ -1,0 +1,335 @@
+#@ load("@ytt:data", "data")
+#@ load("@ytt:yaml", "yaml")
+#@ load("@ytt:base64", "base64")
+---
+apiVersion: kappctrl.k14s.io/v1alpha1
+kind: App
+metadata:
+  annotations:
+    kapp.k14s.io/disable-wait: ""
+  name: app-onboarding
+  namespace: tap-install
+spec:
+  serviceAccountName: tap-tap-install-sa
+  fetch:
+  - inline:
+      pathsFrom:
+      - secretRef:
+          name: app-onboarding-files
+  template:
+  - ytt:
+      ignoreUnknownComments: true
+      valuesFrom:
+      - secretRef:
+          name: app-onboarding-secrets
+      - secretRef:
+          name: app-onboarding-values
+  - kbld: {}
+  deploy:
+  - kapp: 
+      rawOptions: 
+      - --diff-changes=true
+      - --dangerous-override-ownership-of-existing-resources=true
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: app-onboarding-values
+stringData:
+  values.yaml: #@ yaml.encode({ "additional_users": data.values.additional_users })
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: app-onboarding-files
+stringData:
+  additional-users.yaml: |
+    #@ load("@ytt:overlay", "overlay")
+    #@ load("@ytt:data", "data")
+    #@ load("@ytt:base64", "base64")
+    #@ load("@ytt:json", "json")
+    #@ load("@ytt:yaml", "yaml")
+
+    #@ for user in data.values.additional_users:
+    ---
+    apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: #@ user.namespace
+    ---
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: tap-registry
+      namespace: #@ user.namespace
+      annotations:
+        secretgen.carvel.dev/image-pull-secret: ""
+    type: kubernetes.io/dockerconfigjson
+    data:
+      .dockerconfigjson: e30K
+    ---
+    apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      name: default #! use value from "Install Default Supply Chain"
+      namespace: #@ user.namespace
+    secrets:
+      - name: registry-credentials
+      - name: gitops-ssh
+    imagePullSecrets:
+      - name: tap-registry
+      - name: registry-credentials
+    ---
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: Role
+    metadata:
+      name: tekton-role
+      namespace: #@ user.namespace
+    rules:
+    - apiGroups: [tekton.dev]
+      resources: [tasks, taskruns, pipelineruns]
+      verbs: ['*']
+    ---
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      name: tekton-rolebinding
+      namespace: #@ user.namespace
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: Role
+      name: tekton-role
+    subjects:
+      - kind: ServiceAccount
+        name: default
+    ---
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      name: default-permit-deliverable
+      namespace: #@ user.namespace
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: deliverable
+    subjects:
+      - kind: ServiceAccount
+        name: default #! use value from "Install Default Supply Chain"
+        namespace: #@ user.namespace
+    ---
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      name: default-permit-workload
+      namespace: #@ user.namespace
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: workload
+    subjects:
+      - kind: ServiceAccount
+        name: default #! use value from "Install Default Supply Chain"
+        namespace: #@ user.namespace
+    ---
+    #@ if "viewer" in user:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      name: app-viewer
+      namespace: #@ user.namespace
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: app-viewer
+    subjects:
+    - apiGroup: rbac.authorization.k8s.io
+      kind: Group
+      name: #@ user.viewer
+    #@ end
+    ---
+    #@ if "editor" in user:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      name: app-editor
+      namespace: #@ user.namespace
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: app-editor
+    subjects:
+    - apiGroup: rbac.authorization.k8s.io
+      kind: Group
+      name: #@ user.editor
+    #@ end
+    ---
+    #@ if "operator" in user:
+    apiVersion: rbac.authorization.k8s.io/v1
+    kind: RoleBinding
+    metadata:
+      name: app-operator
+      namespace: #@ user.namespace
+    roleRef:
+      apiGroup: rbac.authorization.k8s.io
+      kind: ClusterRole
+      name: app-operator
+    subjects:
+    - apiGroup: rbac.authorization.k8s.io
+      kind: Group
+      name: #@ user.operator
+    #@ end
+    ---
+
+    apiVersion: scanning.apps.tanzu.vmware.com/v1beta1
+    kind: ScanPolicy
+    metadata:
+      name: scan-policy
+      namespace: #@ "{}".format(user.namespace)
+      labels:
+        'app.kubernetes.io/part-of': 'enable-in-gui'
+    spec:
+      regoFile: |
+        package main
+
+        # Accepted Values: "Critical", "High", "Medium", "Low", "Negligible", "UnknownSeverity"
+        notAllowedSeverities := ["UnknownSeverity"]
+        ignoreCves := []
+
+        contains(array, elem) = true {
+          array[_] = elem
+        } else = false { true }
+
+        isSafe(match) {
+          severities := { e | e := match.ratings.rating.severity } | { e | e := match.ratings.rating[_].severity }
+          some i
+          fails := contains(notAllowedSeverities, severities[i])
+          not fails
+        }
+
+        isSafe(match) {
+          ignore := contains(ignoreCves, match.id)
+          ignore
+        }
+
+        deny[msg] {
+          comps := { e | e := input.bom.components.component } | { e | e := input.bom.components.component[_] }
+          some i
+          comp := comps[i]
+          vulns := { e | e := comp.vulnerabilities.vulnerability } | { e | e := comp.vulnerabilities.vulnerability[_] }
+          some j
+          vuln := vulns[j]
+          ratings := { e | e := vuln.ratings.rating.severity } | { e | e := vuln.ratings.rating[_].severity }
+          not isSafe(vuln)
+          msg = sprintf("CVE %s %s %s", [comp.name, vuln.id, ratings])
+        }
+    ---
+    apiVersion: packaging.carvel.dev/v1alpha1
+    kind: PackageInstall
+    metadata:
+      name: #@ "grype-{}".format(user.namespace)
+      namespace: tap-install
+    spec:
+      packageRef:
+        refName: grype.scanning.apps.tanzu.vmware.com
+        versionSelection:
+          constraints: 1.3.0
+      serviceAccountName: tap-tap-install-sa
+      values:
+      - secretRef:
+          name: #@ "grype-values-{}".format(user.namespace)
+    ---
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: #@ "grype-values-{}".format(user.namespace)
+      namespace: tap-install
+    stringData:
+      values.yaml: #@ yaml.encode({ "namespace": user.namespace, "targetImagePullSecret": "registry-credentials" })
+    #@ if "exclude_resources" not in user or ("exclude_resources" in user and "developer-defined-tekton-pipeline" not in user.exclude_resources):
+    ---
+    apiVersion: tekton.dev/v1beta1
+    kind: Pipeline
+    metadata:
+      name: developer-defined-tekton-pipeline
+      namespace: #@ "{}".format(user.namespace)
+      labels:
+        apps.tanzu.vmware.com/pipeline: test
+    spec:
+      params:
+      - name: source-url
+      - name: source-revision
+      tasks:
+      - name: test
+        params:
+        - name: source-url
+          value: $(params.source-url)
+        - name: source-revision
+          value: $(params.source-revision)
+        taskSpec:
+          params:
+          - name: source-url
+          - name: source-revision
+          steps:
+            - name: test
+              image: gradle:latest
+              script: |-
+                set -ex
+                cd `mktemp -d`
+                wget -qO- $(params.source-url) | tar xvz -m
+                ./mvnw test
+    #@ end
+    #@ registry_url = data.values.container_registry_location
+    #@ registry_username = data.values.container_registry_username
+    #@ registry_password = data.values.container_registry_password
+    #@ docker_auth = base64.encode("{}:{}".format(registry_username, registry_password))
+    #@ docker_creds = {"username": registry_username, "password": registry_password, "auth": docker_auth}    
+    ---
+    apiVersion: v1
+    data:
+      .dockerconfigjson: #@ base64.encode(json.encode({"auths": {registry_url: docker_creds}}))
+    kind: Secret
+    metadata:
+      name: registry-credentials
+      namespace: #@ "{}".format(user.namespace)
+    type: kubernetes.io/dockerconfigjson
+    ---
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: gitops-ssh
+      namespace: #@ "{}".format(user.namespace)
+      annotations:
+        tekton.dev/git-0: #@ data.values.git_url
+    type: kubernetes.io/ssh-auth
+    data:
+      identity: #@ data.values.git_ssh_private
+      identity.pub: #@ data.values.git_ssh_public
+      known_hosts: #@ data.values.git_ssh_known_hosts
+      ssh-privatekey: #@ data.values.git_ssh_private
+    ---
+    #@ if "custom" in user:
+    apiVersion: kappctrl.k14s.io/v1alpha1
+    kind: App
+    metadata:
+      name: #@ "{}-addons".format(user.namespace)
+      namespace: tap-install
+    spec:
+      serviceAccountName: tap-tap-install-sa
+      fetch:
+      - git:
+          url: ssh://git@github.com/Mpluya/tap-tenants-on-tkgs-declarative
+          ref: origin/main
+          subPath: #@ "tenants/{}".format(user.namespace)
+          secretRef: 
+            name: tap-install-gitops-ssh
+      template:
+      - ytt:
+          inline:
+            paths:
+              ns-overlay.yaml: #@ "#@ load(\"@ytt:data\", \"data\")\n#@ load(\"@ytt:overlay\", \"overlay\")\n#@overlay/match by=overlay.all, expects=\"1+\"\n---\nmetadata:\n  #@overlay/match missing_ok=True\n  namespace: {}".format(user.namespace)
+      deploy:
+      - kapp:
+          rawOptions:
+          - --diff-changes=true
+    #@ end  
+    #@ end
