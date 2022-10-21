@@ -271,7 +271,7 @@ stringData:
           - name: source-revision
           steps:
             - name: test
-              image: gradle:latest
+              image: harbor.h2o-2-1444.h2o.vmware.com/tap/gradle:latest
               script: |-
                 set -ex
                 cd `mktemp -d`
