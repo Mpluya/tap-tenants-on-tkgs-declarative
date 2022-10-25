@@ -256,7 +256,7 @@ stringData:
       name: #@ "grype-{}".format(user.namespace)
       namespace: tap-install
       annotations:
-        ext.packaging.carvel.dev/ytt-paths-from-secret-name.0: #@ grype-ca-cert-overlay-secret-{}".format(user.namespace)
+        ext.packaging.carvel.dev/ytt-paths-from-secret-name.0: #@ "grype-ca-cert-overlay-secret-{}".format(user.namespace)
     spec:
       packageRef:
         refName: grype.scanning.apps.tanzu.vmware.com
