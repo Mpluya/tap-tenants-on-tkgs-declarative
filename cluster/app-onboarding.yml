@@ -223,9 +223,39 @@ stringData:
           msg = sprintf("CVE %s %s %s", [comp.name, vuln.id, ratings])
         }
     ---
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: #@ "grype-ca-cert-overlay-secret-{}".format(user.namespace)
+      namespace: tap-install
+    stringData:
+      patch.yaml: |
+        #@ load("@ytt:overlay", "overlay")
+
+        #@overlay/match by=overlay.subset({"kind":"ScanTemplate","metadata":{"namespace": "{}".format(user.namespace) }}),expects="1+"
+        ---
+        spec:
+          template:
+            initContainers:
+              #@overlay/match by=overlay.subset({"name": "scan-plugin"}), expects="1+"
+              - name: scan-plugin
+                #@overlay/match missing_ok=True
+                volumeMounts:
+                  #@overlay/append
+                  - name: ca-cert
+                    mountPath: /etc/ssl/certs/custom-ca.crt
+                    subPath: ca_cert_data #! key pointing to ca certificate
+            volumes:
+            #@overlay/append
+            - name: ca-cert
+              configMap:
+                name: harbor-ca-cert-configmap-for-grype
+    ---
     apiVersion: packaging.carvel.dev/v1alpha1
     kind: PackageInstall
     metadata:
+      annotations:
+        #@ "ext.packaging.carvel.dev/ytt-paths-from-secret-name.0: grype-ca-cert-overlay-secret-{}".format(user.namespace)
       name: #@ "grype-{}".format(user.namespace)
       namespace: tap-install
     spec:
