@@ -254,7 +254,7 @@ stringData:
     kind: PackageInstall
     metadata:
       annotations:
-        #@ "ext.packaging.carvel.dev/ytt-paths-from-secret-name.0: grype-ca-cert-overlay-secret-{}".format(user.namespace)
+        ext.packaging.carvel.dev/ytt-paths-from-secret-name.0: #@ grype-ca-cert-overlay-secret-{}".format(user.namespace)
       name: #@ "grype-{}".format(user.namespace)
       namespace: tap-install
     spec:
