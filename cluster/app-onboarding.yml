@@ -229,7 +229,8 @@ stringData:
       name: #@ "grype-ca-cert-overlay-secret-{}".format(user.namespace)
       namespace: tap-install
     stringData:
-      patch.yaml: #@ "#@ load(\"@ytt:overlay\", \"overlay\")\n#@overlay\/match by=overlay.subset({\"kind\":\"ScanTemplate\",\"metadata\":{"namespace": {} }}),expects=\"1+\"\n---\nspec:\n  template:\n    initContainers:\n      #@overlay\/match by=overlay.subset({\"name\": \"scan-plugin\"}), expects=\"1+\"\n      - name: scan-plugin\n        #@overlay\/match missing_ok=True\n        volumeMounts:\n          #@overlay\/append\n          - name: ca-cert\n            mountPath: /etc/ssl/certs/custom-ca.crt\n            subPath: ca_cert_data\n    volumes:\n
+      patch.yaml: |
+        #@ "#@ load(\"@ytt:overlay\", \"overlay\")\n#@overlay\/match by=overlay.subset({\"kind\":\"ScanTemplate\",\"metadata\":{"namespace": {} }}),expects=\"1+\"\n---\nspec:\n  template:\n    initContainers:\n      #@overlay\/match by=overlay.subset({\"name\": \"scan-plugin\"}), expects=\"1+\"\n      - name: scan-plugin\n        #@overlay\/match missing_ok=True\n        volumeMounts:\n          #@overlay\/append\n          - name: ca-cert\n            mountPath: /etc/ssl/certs/custom-ca.crt\n            subPath: ca_cert_data\n    volumes:\n
             #@overlay\/append\n    - name: ca-cert\n      configMap:\n        name: harbor-ca-cert-configmap-for-grype".format(user.namespace)
     ---
     apiVersion: packaging.carvel.dev/v1alpha1
