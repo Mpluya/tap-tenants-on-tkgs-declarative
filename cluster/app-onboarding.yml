@@ -374,6 +374,20 @@ stringData:
     spec:
       storageClassName: vc01cl01-t0compute
       monitorStorageClassName: vc01cl01-t0compute
+    ---
+    apiVersion: services.apps.tanzu.vmware.com/v1alpha1
+    kind: ResourceClaim
+    metadata:
+      finalizers:
+      - resourceclaims.services.apps.tanzu.vmware.com/finalizer
+      name: #@ "psql-{}".format(user.namespace)
+      namespace: #@ "{}".format(user.namespace)
+    spec:
+      ref:
+        apiVersion: sql.tanzu.vmware.com/v1
+        kind: Postgres
+        name: #@ "psql-{}".format(user.namespace)
+        namespace: psql-service-instances
     #@ end
     ---
     #@ if "custom" in user:
