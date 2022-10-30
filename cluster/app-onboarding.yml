@@ -365,6 +365,17 @@ stringData:
       known_hosts: #@ data.values.git_ssh_known_hosts
       ssh-privatekey: #@ data.values.git_ssh_private
     ---
+    #@ if "postgres" in user:
+    apiVersion: sql.tanzu.vmware.com/v1
+    kind: Postgres
+    metadata:
+      name: #@ "psql-{}".format(user.namespace)
+      namespace: #@ "{}".format(user.namespace)
+    spec:
+      storageClassName: vc01cl01-t0compute
+      monitorStorageClassName: vc01cl01-t0compute
+    #@ end
+    ---
     #@ if "custom" in user:
     apiVersion: kappctrl.k14s.io/v1alpha1
     kind: App
