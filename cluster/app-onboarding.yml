@@ -374,6 +374,13 @@ stringData:
     spec:
       storageClassName: vc01cl01-t0compute
       monitorStorageClassName: vc01cl01-t0compute
+      memory: 800Mi
+      cpu: "0.8"
+      storageSize: 2G
+      pgConfig:
+        dbname: customer-profile-database
+        username: pgadmin
+        appUser: pgappuser
     ---
     apiVersion: services.apps.tanzu.vmware.com/v1alpha1
     kind: ResourceClaim
