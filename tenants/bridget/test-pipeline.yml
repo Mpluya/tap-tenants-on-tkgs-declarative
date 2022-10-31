@@ -1,0 +1,56 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: customer-profile-test-pipeline
+  labels:
+    apps.tanzu.vmware.com/pipeline: test
+    apps.tanzu.vmware.com/language: java
+spec:
+  params:
+    - name: source-url
+    - name: source-revision
+  tasks:
+    - name: test
+      params:
+        - name: source-url
+          value: $(params.source-url)
+        - name: source-revision
+          value: $(params.source-revision)
+      taskSpec:
+        params:
+          - name: source-url
+          - name: source-revision
+        steps:
+          - name: test
+            image: harbor.h2o-2-1444.h2o.vmware.com/library/bellsoft/liberica-openjdk-alpine:11
+            script: |-
+              cd `mktemp -d`
+              wget -qO- $(params.source-url) | tar xvz -m
+              FILE="./mvnw"
+              if test -f "$FILE"; then
+                  ./mvnw verify
+              fi
+              FILE="./gradlew"
+              if test -f "$FILE"; then
+                  ./gradlew test
+              fi
+            volumeMounts:
+              - mountPath: /var/run/
+                name: dind-socket
+        sidecars:
+          - image: harbor.h2o-2-1444.h2o.vmware.com/library/docker:20.10.17-dind
+            name: docker
+            securityContext:
+              privileged: true
+            volumeMounts:
+              - mountPath: /var/run/
+                name: dind-socket
+              - mountPath: /etc/ssl/certs/custom-ca.crt
+                name: ca-cert
+                subPath: ca_cert_data
+        volumes:
+          - name: dind-socket
+            emptyDir: { }
+          - name: ca-cert
+            configMap:
+              name: harbor-ca-cert-configmap-for-grype
