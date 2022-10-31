@@ -370,7 +370,7 @@ stringData:
     kind: Postgres
     metadata:
       name: #@ "psql-{}".format(user.namespace)
-      namespace: psql-service-instances 
+      namespace: postgres-operator 
     spec:
       storageClassName: vc01cl01-t0compute
       monitorStorageClassName: vc01cl01-t0compute
@@ -394,7 +394,7 @@ stringData:
         apiVersion: sql.tanzu.vmware.com/v1
         kind: Postgres
         name: #@ "psql-{}".format(user.namespace)
-        namespace: psql-service-instances
+        namespace: postgres-operator
     #@ end
     ---
     #@ if "custom" in user:
