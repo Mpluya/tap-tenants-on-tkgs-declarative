@@ -8,3 +8,5 @@ additional_users:
       - developer-defined-tekton-pipeline
   - namespace: mae
     custom: true
+    exclude_resources:
+      - developer-defined-tekton-pipeline
