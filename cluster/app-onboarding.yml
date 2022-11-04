@@ -324,8 +324,8 @@ stringData:
           value: $(params.source-url)
         - name: source-revision
           value: $(params.source-revision)
-        - name: testing_pipeline_params
-          value: $(params.testing_pipeline_params)
+        - name: testing-sub-path
+          value: $(params.testing-sub-path)
         taskSpec:
           params:
           - name: source-url
@@ -336,7 +336,7 @@ stringData:
               script: |-
                 cd `mktemp -d`
                 wget -qO- $(params.source-url) | tar xvz -m
-                cd $(params.testing_pipeline_params)
+                cd $(params.testing-sub-path)
                 ./mvnw test
     #@ end
     #@ registry_url = data.values.container_registry_location
