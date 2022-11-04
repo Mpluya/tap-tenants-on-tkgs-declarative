@@ -324,7 +324,7 @@ stringData:
           value: $(params.source-url)
         - name: source-revision
           value: $(params.source-revision)
-        - name:testing-sub-path
+        - name: testing-sub-path
           value: $(params.testing-sub-path)
         taskSpec:
           params:
@@ -337,7 +337,9 @@ stringData:
                 set -ex
                 cd `mktemp -d`
                 wget -qO- $(params.source-url) | tar xvz -m
-                cd $(params.testing-sub-path)
+                if [ ! -z $(params.testing-sub-path)]; then
+                  cd $(params.testing-sub-path)
+                fi
                 ./mvnw test
     #@ end
     #@ registry_url = data.values.container_registry_location
