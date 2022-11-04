@@ -338,7 +338,7 @@ stringData:
               script: |-
                 cd `mktemp -d`
                 wget -qO- $(params.source-url) | tar xvz -m
-                if [! -z $(params.testing-sub-path)]; then
+                if [ -n $(params.testing-sub-path) ]; then
                   cd $(params.testing-sub-path)
                 fi
                 ./mvnw test
