@@ -317,6 +317,7 @@ stringData:
       - name: source-url
       - name: source-revision
       - name: testing-sub-path
+        default: ""
       tasks:
       - name: test
         params:
