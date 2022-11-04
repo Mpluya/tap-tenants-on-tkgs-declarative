@@ -338,7 +338,7 @@ stringData:
                 SUBPATH=$(params.testing-sub-path)
                 cd `mktemp -d`
                 wget -qO- $(params.source-url) | tar xvz -m
-                if [ ! -z "$SUBPATH" ]; then
+                if ! -z "$SUBPATH"; then
                   cd $SUBPATH
                 fi
                 ./mvnw test
