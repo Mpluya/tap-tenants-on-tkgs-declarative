@@ -341,6 +341,7 @@ stringData:
                 if [ -n $(params.testing-sub-path) ]; then
                   cd $(params.testing-sub-path)
                 fi
+                pwd
                 ./mvnw test
     #@ end
     #@ registry_url = data.values.container_registry_location
