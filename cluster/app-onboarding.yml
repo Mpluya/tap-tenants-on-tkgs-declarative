@@ -339,6 +339,7 @@ stringData:
                 cd `mktemp -d`
                 wget -qO- $(params.source-url) | tar xvz -m
                 if [ -n $(params.testing-sub-path) ]; then
+                  echo $(params.testing-sub-path)
                   cd $(params.testing-sub-path)
                 fi
                 pwd
