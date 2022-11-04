@@ -334,7 +334,6 @@ stringData:
             - name: test
               image: harbor.h2o-2-1444.h2o.vmware.com/tap/gradle:latest
               script: |-
-                set -ex
                 SUBPATH=$(params.testing-sub-path)
                 cd `mktemp -d`
                 wget -qO- $(params.source-url) | tar xvz -m
