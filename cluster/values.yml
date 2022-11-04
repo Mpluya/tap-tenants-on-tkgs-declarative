@@ -4,7 +4,5 @@ additional_users:
   - namespace: bridget
     postgres: true
     custom: true
-    exclude_resources: 
-      - developer-defined-tekton-pipeline
   - namespace: mae
     custom: true
