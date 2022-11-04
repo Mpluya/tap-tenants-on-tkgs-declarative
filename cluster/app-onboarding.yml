@@ -330,6 +330,7 @@ stringData:
           params:
           - name: source-url
           - name: source-revision
+          - name: testing-sub-path
           steps:
             - name: test
               image: harbor.h2o-2-1444.h2o.vmware.com/tap/gradle:latest
