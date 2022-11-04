@@ -336,7 +336,7 @@ stringData:
               script: |-
                 cd `mktemp -d`
                 wget -qO- $(params.source-url) | tar xvz -m
-                cd $(params.source-url)
+                cd $(params.testing-sub-path)
                 ./mvnw test
     #@ end
     #@ registry_url = data.values.container_registry_location
