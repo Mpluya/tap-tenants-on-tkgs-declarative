@@ -339,7 +339,7 @@ stringData:
                 cd `mktemp -d`
                 wget -qO- $(params.source-url) | tar xvz -m
                 echo "hello"
-                if [ -z "$(params.testing-sub-path)" ]; then
+                if [ ! -z "$(params.testing-sub-path)" ]; then
                   echo "satisfied if condition"
                   cd $(params.testing-sub-path)
                 fi
