@@ -338,11 +338,11 @@ stringData:
               script: |-
                 cd `mktemp -d`
                 wget -qO- $(params.source-url) | tar xvz -m
+                echo "hello"
                 if [ -n $(params.testing-sub-path) ]; then
-                  echo $(params.testing-sub-path)
+                  echo "satisfied if condition"
                   cd $(params.testing-sub-path)
                 fi
-                pwd
                 ./mvnw test
     #@ end
     #@ registry_url = data.values.container_registry_location
