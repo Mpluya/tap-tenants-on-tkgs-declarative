@@ -3,6 +3,7 @@ kind: Pipeline
 metadata:
   name: customer-profile-test-pipeline
   labels:
+    apps.tanzu.vmware.com/pipeline: test
     pipeline-tag: customer-profile-test-pipeline
 spec:
   params:
