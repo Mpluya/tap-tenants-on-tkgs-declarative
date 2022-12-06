@@ -225,7 +225,7 @@ stringData:
     ---
     apiVersion: v1
     data:
-      ca_cert_data: #@ data.values.registry_ca_cert
+      ca_cert_data: #@ base64.decode(data.values.registry_ca_cert)
     kind: ConfigMap
     metadata:
       name: harbor-ca-cert-configmap-for-grype
