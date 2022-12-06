@@ -1,5 +1,11 @@
 #@data/values
 ---
+additional_users: 
+  - namespace: bridget
+    postgres: true
+    custom: true
+  - namespace: mae
+    custom: true
 registry_ca_cert: |
     -----BEGIN CERTIFICATE-----
     MIIFiDCCA3CgAwIBAgIQJubsvqiIIz+GA4QyMpB4QjANBgkqhkiG9w0BAQsFADBe
@@ -33,9 +39,3 @@ registry_ca_cert: |
     gihp+coB+PCH6tPi14N7y557S+DatSQSsiOTp0qJIxU+wwmPtQGNFcs5fdRmdrVb
     BLhM69jrBeU+BdM1XoguexN9fmRnTNgAL7kaJA==
     -----END CERTIFICATE-----
-additional_users: 
-  - namespace: bridget
-    postgres: true
-    custom: true
-  - namespace: mae
-    custom: true
