@@ -21,7 +21,7 @@ spec:
           - name: source-revision
         steps:
           - name: test
-            image: harbor.h2o-2-1444.h2o.vmware.com/library/bellsoft/liberica-openjdk-alpine:11
+            image:  harbor.h2o-2-1249.h2o.vmware.com/library/bellsoft/liberica-openjdk-alpine:18
             script: |-
               cd `mktemp -d`
               wget -qO- $(params.source-url) | tar xvz -m
@@ -37,7 +37,7 @@ spec:
               - mountPath: /var/run/
                 name: dind-socket
         sidecars:
-          - image: harbor.h2o-2-1444.h2o.vmware.com/library/docker:20.10.17-dind
+          - image: harbor.h2o-2-1249.h2o.vmware.com/library/docker:20.10.17-dind
             name: docker
             securityContext:
               privileged: true

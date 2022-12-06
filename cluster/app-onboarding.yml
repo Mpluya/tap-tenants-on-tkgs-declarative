@@ -334,7 +334,7 @@ stringData:
           - name: testing-sub-path
           steps:
             - name: test
-              image: harbor.h2o-2-1444.h2o.vmware.com/tap/gradle:latest
+              image: harbor.h2o-2-1249.h2o.vmware.com/library/gradle:latest
               script: |-
                 cd `mktemp -d`
                 wget -qO- $(params.source-url) | tar xvz -m

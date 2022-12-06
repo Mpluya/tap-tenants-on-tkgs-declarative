@@ -7,5 +7,5 @@ metadata:
   namespace: mae
 spec:
   containers:
-  - image: harbor.h2o-2-1444.h2o.vmware.com/tap/nginx:latest
+  - image: harbor.h2o-2-1249.h2o.vmware.com/library/nginx:latest
     name: nginx
