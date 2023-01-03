@@ -192,7 +192,7 @@ stringData:
         package main
 
         # Accepted Values: "Critical", "High", "Medium", "Low", "Negligible", "UnknownSeverity"
-        notAllowedSeverities := ["high"]
+        notAllowedSeverities := ["High", "high"]
         ignoreCves := []
 
         contains(array, elem) = true {
