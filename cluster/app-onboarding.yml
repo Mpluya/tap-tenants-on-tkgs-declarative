@@ -244,13 +244,8 @@ stringData:
         isSafe(match) {
           severities := { e | e := match.ratings.rating.severity } | { e | e := match.ratings.rating[_].severity }
           some i
-          fails := contains(notAllowedSeverities, severities[i])
+          fails := true
           not fails
-        }
-
-        isSafe(match) {
-          ignore := contains(ignoreCves, match.id)
-          ignore
         }
 
         deny[msg] {
