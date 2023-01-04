@@ -244,23 +244,23 @@ stringData:
         isSafe(match) {
           severities := { e | e := match.ratings.rating.severity } | { e | e := match.ratings.rating[_].severity }
           some i
-          print(severities[i])
           fails := contains(notAllowedSeverities, severities[i])
           not fails
+        }
+
+        isSafe(match) {
+          ignore := contains(ignoreCves, match.id)
+          ignore
         }
 
         deny[msg] {
           vulns := { e | e := input.bom.vulnerabilities.vulnerability } | { e | e := input.bom.vulnerabilities.vulnerability[_] }
           some i
           vuln := vulns[i]
-          print("vuln: ", vulns[i])
-          print("input.bom.vulnerabilities.vulnerability.id: %s", [vuln.id])
-
+          msg = sprintf("YOOOOO bom vuln: ", [vuln.id])
           targets := { e | e := vuln.affects.target } | { e | e := vuln.affects.target[_] }
           some j
           target := targets[j]
-          print("vuln.affects.target.ref: %s", [target.ref])
-
 
           ratings := { e | e := vuln.ratings.rating.severity } | { e | e := vuln.ratings.rating[_].severity }
           not isSafe(vuln)
