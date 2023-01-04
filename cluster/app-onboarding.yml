@@ -247,11 +247,6 @@ stringData:
           not fails
         }
 
-        isSafe(match) {
-          ignore := contains(ignoreCves, match.id)
-          ignore
-        }
-
         deny[msg] {
           vulns := { e | e := input.bom.vulnerabilities.vulnerability } | { e | e := input.bom.vulnerabilities.vulnerability[_] }
           some i
