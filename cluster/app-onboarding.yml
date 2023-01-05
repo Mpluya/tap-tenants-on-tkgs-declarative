@@ -255,8 +255,8 @@ stringData:
 
         deny[msg] {
           vulns := { e | e := input.bom.vulnerabilities.vulnerability } | { e | e := input.bom.vulnerabilities.vulnerability[_] }
-          some i
-          vuln := vulns[i]
+          some j
+          vuln := vulns[j]
 
           ratings := { e | e := vuln.ratings.rating.severity } | { e | e := vuln.ratings.rating[_].severity }
           not isSafe(vuln)
