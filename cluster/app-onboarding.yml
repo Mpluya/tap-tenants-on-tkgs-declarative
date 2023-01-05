@@ -243,21 +243,24 @@ stringData:
 
         isSafe(match) {
           severities := { e | e := match.ratings.rating.severity } | { e | e := match.ratings.rating[_].severity }
-          fails := true
+          some i
+          fails := contains(notAllowedSeverities, severities[i])
           not fails
+        }
+
+        isSafe(match) {
+          ignore := contains(ignoreCves, match.id)
+          ignore
         }
 
         deny[msg] {
           vulns := { e | e := input.bom.vulnerabilities.vulnerability } | { e | e := input.bom.vulnerabilities.vulnerability[_] }
           some i
           vuln := vulns[i]
-          targets := { e | e := vuln.affects.target } | { e | e := vuln.affects.target[_] }
-          some j
-          target := targets[j]
 
           ratings := { e | e := vuln.ratings.rating.severity } | { e | e := vuln.ratings.rating[_].severity }
           not isSafe(vuln)
-          msg = sprintf("CVE %s %s %s", [target.ref, vuln.id, ratings])
+          msg = sprintf("CVE %s %s %s", [vuln.affects.target.ref, vuln.id, ratings])
         }
     ---
     apiVersion: v1
